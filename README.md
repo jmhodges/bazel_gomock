@@ -21,11 +21,13 @@ gomock(
 )
 ```
 
-where `library` is a `go_library` target, `interfaces` is the list of interfaces
-you'd like `mockgen` to use reflection to generate mocks of in that `library`,
-`package` is the name of the Go package at the top of the generated file (in
-this example, `package "main"`), and `out` is the path of generated source file
-that will be made.
+where `library` is a `go_library` target, `interfaces` is the list of names of
+the Go interfaces you'd like `mockgen` to generate mocks of, `package` is the
+name of the Go package at the top of the generated file (in this example,
+`package "main"`), and `out` is the path of generated source file that will be
+made.
+
+There is also a `source` parameter described below.
 
 You use this target's `out` file directly in the `srcs` parameter in `go_test`,
 `go_library`, and so on. So, when the above example `gomock` call is used in the
