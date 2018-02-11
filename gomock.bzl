@@ -41,7 +41,7 @@ _gomock_sh = go_rule(
     _gomock_sh_impl,
     attrs = {
         "library": attr.label(
-            doc = "The target the Go library is at to look for the interfaces in. When this is set, mockgen will use its reflect code to generate the mocks. source cannot also be set when this is set.",
+            doc = "The target the Go library is at to look for the interfaces in.",
             providers = [GoLibrary],
             mandatory = True,
         ),

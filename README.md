@@ -22,7 +22,7 @@ gomock(
 )
 ```
 
-Where `library` is a `go_library` target, `interfaces` is the list of interfaces
+Where `library` is a `go_library` target (that isn't a `main` package), `interfaces` is the list of interfaces
 you'd like `mockgen` to use reflection to generate mocks of in that `library`,
 `package` is the name of the Go package at the top of the generated file (in
 this example, `package "main"`), and `out` is the path of generated source file
@@ -49,3 +49,24 @@ As a slightly hidden feature, you can pass in an alternative external for where
 to find the `mockgen` tool target using the `_mockgen_tool` parameter. The only
 rule for the target is that must be a binary. The current default is
 `"@com_github_golang_mock//mockgen"`.
+
+If you try to use `gomock` on a `go_library` is in package `main` (and so
+probably being immediately used as an `embed` target for a `go_binary`), you'll
+get an annoying error like:
+
+```
+prog.go:13:2: import "your/main/package/deal" is a program, not an importable package
+```
+
+This is because `mockgen` doesn't support reflecting into binaries (because
+unused symbols you might want to reflect on could be dropped, etc.) and so you
+might get directed to use `mockgen`'s `-source` parameter to point at the file
+that holds the interfaces you want to create mocks for.
+
+However, using `-source` parameter doesn't allow you to generate compilable
+mocks that refer to types in other packages than the one you're generated the
+code into. That's annoying and a bummer, and so `gomock` doesn't support that in
+its API. You can however, rig it up
+
+I'd recommend just breaking out another `go_library` with the
+interface you need, and use gomock instead.
