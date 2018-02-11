@@ -1,9 +1,9 @@
 gomock for Bazel
 ================
 
-This skylark code allows you to generate code with `mockgen` and use that code
-as a dependency in your bazel projects. It handles all the `GOPATH` stuff for
-you.
+This skylark code allows you to generate code with `mockgen` (from
+[`golang/mock`](github.com/golang/mock)) and use that code as a dependency in
+your bazel projects. It handles all the `GOPATH` stuff for you.
 
 This repo doesn't make it easy to include right now, but the api call you want is `gomock`.
 
