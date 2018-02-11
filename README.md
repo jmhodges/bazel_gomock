@@ -5,7 +5,10 @@ This skylark code allows you to generate code with `mockgen` (from
 [`golang/mock`](github.com/golang/mock)) and use that code as a dependency in
 your bazel projects. It handles all the `GOPATH` stuff for you.
 
-This repo doesn't make it easy to include right now, but the api call you want is `gomock`.
+This repo doesn't make it easy to include right now, but the api call you want
+is `gomock`. It requires a `rules_go` external to be set up in your `WORKSPACE`
+and a go_repository setup for `com_github_golang_mock` (unless you override an
+argument; see below).
 
 You call it in your BUILD files as
 
@@ -41,3 +44,8 @@ go_test(
     ...
 )
 ```
+
+As a slightly hidden feature, you can pass in an alternative external for where
+to find the `mockgen` tool target using the `_mockgen_tool` parameter. The only
+rule for the target is that must be a binary. The current default is
+`"@com_github_golang_mock//mockgen"`.
