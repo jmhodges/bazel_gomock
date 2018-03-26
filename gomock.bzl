@@ -8,8 +8,6 @@ def _gomock_sh_impl(ctx):
     go_ctx = go_context(ctx)
     gopath = "$(pwd)/" + ctx.var["BINDIR"] + "/" + ctx.attr.gopath_dep[GoPath].gopath
 
-    stdlib = go_ctx.stdlib
-
     inputs = [ctx.file.mockgen_tool, go_ctx.go] + ctx.attr.gopath_dep.files.to_list()
     args = []
     if ctx.attr.package != '':
