@@ -1,6 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_context", "go_path", "go_rule")
 
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath", "GoStdLib")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
 
 _MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
         
