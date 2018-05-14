@@ -1,1 +1,1 @@
-workspace(name = "bazel_gomock")
+workspace(name = "com_github_jmhodges_bazel_gomock")
