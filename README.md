@@ -60,7 +60,7 @@ external for where to find the `mockgen` tool target using the `mockgen_tool`
 parameter. The only rule for the target is that must be a binary. The current
 default is `"@com_github_golang_mock//mockgen"`.
 
-If you try to use `gomock` on a `go_library` is in package `main` (and so
+If you try to use `gomock` on a `go_library` that is in the package `main` (and so
 probably being immediately used as an `embed` target for a `go_binary`), you'll
 get an annoying error like:
 
