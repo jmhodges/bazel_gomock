@@ -46,14 +46,17 @@ go_test(
 )
 ```
 
-If you need to point generate mocks from a specific Go file instead of a
-importpath (say, because the `go_library` you have is a `main` package and is
+If you need to generate mocks from a specific Go file instead of a
+import path (say, because the `go_library` you have is a `main` package and is
 therefore unreflectable by Go tools and specifically unimportable by `mockgen`),
 add the `source` parameter with the location of source file. E.g. `source =
 "//fancy/path:foo.go"` or just `source = "foo.go"` if the file is in the same
 directory). The `library` parameter must still be set to the library that source
 file lives in so that any referenced dependencies can be pulled into the Go
 path.
+
+Also, `gazelle` will remove the generated source file from a `go_test` target's
+`srcs` unless you end the generated file name with `_test.go`.
 
 As a likely unused feature, you can pass in an alternative
 external for where to find the `mockgen` tool target using the `mockgen_tool`
