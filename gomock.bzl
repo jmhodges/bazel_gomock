@@ -7,7 +7,10 @@ def _gomock_sh_impl(ctx):
     go_ctx = go_context(ctx)
     gopath = "$(pwd)/" + ctx.var["BINDIR"] + "/" + ctx.attr.gopath_dep[GoPath].gopath
 
-    inputs = [ctx.file.mockgen_tool, go_ctx.go] + ctx.attr.gopath_dep.files.to_list()
+    inputs = [ctx.file.mockgen_tool, go_ctx.go] + (
+        ctx.attr.gopath_dep.files.to_list() +
+        go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
+    )
     args = []
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
