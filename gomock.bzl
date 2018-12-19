@@ -4,7 +4,7 @@ load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
 _MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
 _MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
 
-def _gomock_sh_impl(ctx):
+def _gomock_source_impl(ctx):
     args = ["-source", ctx.file.source.path]
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
@@ -18,8 +18,8 @@ def _gomock_sh_impl(ctx):
         out = ctx.outputs.out,
     )
 
-_gomock_sh = go_rule(
-    _gomock_sh_impl,
+_gomock_source = go_rule(
+    _gomock_source_impl,
     attrs = {
         "library": attr.label(
             doc = "The target the Go library is at to look for the interfaces in. When this is set and source is not set, mockgen will use its reflect code to generate the mocks. If source is set, its dependencies will be included in the GOPATH that mockgen will be run in.",
@@ -72,7 +72,7 @@ def gomock(name, library, out, **kwargs):
     )
 
     if kwargs.get("source", None):
-        _gomock_sh(
+        _gomock_source(
             name = name,
             library = library,
             gopath_dep = gopath_name,
