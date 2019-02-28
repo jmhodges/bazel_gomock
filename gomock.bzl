@@ -184,7 +184,8 @@ def _gomock_prog_exec_impl(ctx):
 
     ctx.actions.run_shell(
         outputs = [ctx.outputs.out],
-        inputs = [ctx.file.mockgen_tool, ctx.file.prog_bin],
+        inputs = [ctx.file.prog_bin],
+        tools = [ctx.file.mockgen_tool],
         command = """{cmd} {args} > {out}""".format(
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
             args = " ".join(args),
@@ -239,7 +240,7 @@ def _go_tool_run_shell_stdout(ctx, cmd, args, extra_inputs, out):
     go_ctx = go_context(ctx)
     gopath = "$(pwd)/" + ctx.var["BINDIR"] + "/" + ctx.attr.gopath_dep[GoPath].gopath
 
-    inputs = [cmd, go_ctx.go] + (
+    inputs = (
         ctx.attr.gopath_dep.files.to_list() +
         go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
     ) + extra_inputs
@@ -249,6 +250,10 @@ def _go_tool_run_shell_stdout(ctx, cmd, args, extra_inputs, out):
     ctx.actions.run_shell(
         outputs = [out],
         inputs = inputs,
+        tools = [
+            cmd,
+            go_ctx.go,
+        ],
         command = """
            source <($PWD/{godir}/go env) &&
            export PATH=$GOROOT/bin:$PWD/{godir}:$PATH &&
