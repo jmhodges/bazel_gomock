@@ -60,18 +60,16 @@ _gomock_source = go_rule(
 )
 
 def gomock(name, library, out, **kwargs):
-    gopath_name = name + "_gomock_gopath"
     mockgen_tool = _MOCKGEN_TOOL
-
     if kwargs.get("mockgen_tool", None):
         mockgen_tool = kwargs["mockgen_tool"]
 
-    go_path(
-        name = gopath_name,
-        deps = [library, mockgen_tool],
-    )
-
     if kwargs.get("source", None):
+        gopath_name = name + "_gomock_gopath"
+        go_path(
+            name = gopath_name,
+            deps = [library, mockgen_tool],
+        )
         _gomock_source(
             name = name,
             library = library,
@@ -85,11 +83,10 @@ def gomock(name, library, out, **kwargs):
             library = library,
             out = out,
             mockgen_tool = mockgen_tool,
-            gopath_dep = gopath_name,
             **kwargs
         )
 
-def _gomock_reflect(name, library, out, mockgen_tool, gopath_dep, **kwargs):
+def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
     interfaces = kwargs.get("interfaces", None)
     mockgen_model_lib = _MOCKGEN_MODEL_LIB
     if kwargs.get("mockgen_model_library", None):
@@ -104,7 +101,6 @@ def _gomock_reflect(name, library, out, mockgen_tool, gopath_dep, **kwargs):
         package = kwargs.get("package", None),
         out = prog_src_out,
         mockgen_tool = mockgen_tool,
-        gopath_dep = gopath_dep,
     )
     prog_bin = name + "_gomock_prog_bin"
     go_binary(
@@ -120,22 +116,27 @@ def _gomock_reflect(name, library, out, mockgen_tool, gopath_dep, **kwargs):
         out = out,
         prog_bin = prog_bin,
         mockgen_tool = mockgen_tool,
-        gopath_dep = gopath_dep,
     )
 
 def _gomock_prog_gen_impl(ctx):
     args = ["-prog_only"]
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
-
     args += [ctx.attr.library[GoLibrary].importpath]
     args += [",".join(ctx.attr.interfaces)]
-    _go_tool_run_shell_stdout(
-        ctx = ctx,
-        cmd = ctx.file.mockgen_tool,
-        args = args,
-        extra_inputs = [],
-        out = ctx.outputs.out,
+
+    cmd = ctx.file.mockgen_tool
+    out = ctx.outputs.out
+    ctx.actions.run_shell(
+        outputs = [out],
+        inputs = [cmd],
+        command = """
+           {cmd} {args} > {out}
+        """.format(
+            cmd = "$(pwd)/" + cmd.path,
+            args = " ".join(args),
+            out = out.path,
+        ),
     )
 
 _gomock_prog_gen = go_rule(
@@ -157,11 +158,6 @@ _gomock_prog_gen = go_rule(
         ),
         "package": attr.string(
             doc = "The name of the package the generated mocks should be in. If not specified, uses mockgen's default.",
-        ),
-        "gopath_dep": attr.label(
-            doc = "The go_path label to use to create the GOPATH for the given library. Will be set correctly by the gomock macro, so you don't need to set it.",
-            providers = [GoPath],
-            mandatory = True,
         ),
         "mockgen_tool": attr.label(
             doc = "The mockgen tool to run",
@@ -218,11 +214,6 @@ _gomock_prog_exec = go_rule(
             allow_single_file = True,
             executable = True,
             cfg = "host",
-            mandatory = True,
-        ),
-        "gopath_dep": attr.label(
-            doc = "The go_path label to use to create the GOPATH for the given library. Will be set correctly by the gomock macro, so you don't need to set it.",
-            providers = [GoPath],
             mandatory = True,
         ),
         "mockgen_tool": attr.label(
