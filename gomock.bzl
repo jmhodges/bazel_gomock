@@ -194,6 +194,10 @@ def _gomock_prog_exec_impl(ctx):
             args = " ".join(args),
             out = ctx.outputs.out.path,
         ),
+        env = {
+            # GOCACHE is required starting in Go 1.12
+            "GOCACHE": "./.gocache",
+        },
     )
 
 _gomock_prog_exec = go_rule(
