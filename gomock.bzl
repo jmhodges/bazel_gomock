@@ -27,6 +27,9 @@ def _gomock_source_impl(ctx):
         command = """
            source <($PWD/{godir}/go env) &&
            export PATH=$GOROOT/bin:$PWD/{godir}:$PATH &&
+           export GOPACKAGESPRINTGOLISTERRORS=true &&
+           mkdir -p bazel-out/_tmp/go-cache &&
+           export GOCACHE=$PWD/bazel-out/_tmp/go-cache &&
            {cmd} {args} > {out}
         """.format(
             godir = go_ctx.go.path[:-1 - len(go_ctx.go.basename)],
