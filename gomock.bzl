@@ -28,6 +28,8 @@ def _gomock_source_impl(ctx):
            source <($PWD/{godir}/go env) &&
            export PATH=$GOROOT/bin:$PWD/{godir}:$PATH &&
            export GOPACKAGESPRINTGOLISTERRORS=true &&
+           export HOME=$PWD &&
+           (test -f go.mod || echo "module fakemod" > go.mod) &&
            mkdir -p bazel-out/_tmp/go-cache &&
            export GOCACHE=$PWD/bazel-out/_tmp/go-cache &&
            {cmd} {args} > {out}
