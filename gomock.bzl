@@ -1,5 +1,5 @@
-load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_context", "go_rule")
-load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_context", "go_path", "go_rule")
+load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
 
 _MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
 _MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
@@ -10,30 +10,12 @@ def _gomock_source_impl(ctx):
         args += ["-package", ctx.attr.package]
     args += [",".join(ctx.attr.interfaces)]
 
-    out = ctx.outputs.out
-    cmd = ctx.file.mockgen_tool
-    go_ctx = go_context(ctx)
-    inputs = go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools + [ctx.file.source]
-
-    # We can use the go binary from the stdlib for most of the environment
-    # variables, but our GOPATH is specific to the library target we were given.
-    ctx.actions.run_shell(
-        outputs = [out],
-        inputs = inputs,
-        tools = [
-            cmd,
-            go_ctx.go,
-        ],
-        command = """
-           source <($PWD/{godir}/go env) &&
-           export PATH=$GOROOT/bin:$PWD/{godir}:$PATH &&
-           {cmd} {args} > {out}
-        """.format(
-            godir = go_ctx.go.path[:-1 - len(go_ctx.go.basename)],
-            cmd = "$(pwd)/" + cmd.path,
-            args = " ".join(args),
-            out = out.path,
-        ),
+    _go_tool_run_shell_stdout(
+        ctx = ctx,
+        cmd = ctx.file.mockgen_tool,
+        args = args,
+        extra_inputs = [ctx.file.source],
+        out = ctx.outputs.out,
     )
 
 _gomock_source = go_rule(
@@ -64,6 +46,11 @@ _gomock_source = go_rule(
         "self_package": attr.string(
             doc = "The full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.",
         ),
+        "gopath_dep": attr.label(
+            doc = "The go_path label to use to create the GOPATH for the given library. Will be set correctly by the gomock macro, so you don't need to set it.",
+            providers = [GoPath],
+            mandatory = False,
+        ),
         "mockgen_tool": attr.label(
             doc = "The mockgen tool to run",
             default = Label(_MOCKGEN_TOOL),
@@ -81,9 +68,15 @@ def gomock(name, library, out, **kwargs):
         mockgen_tool = kwargs["mockgen_tool"]
 
     if kwargs.get("source", None):
+        gopath_name = name + "_gomock_gopath"
+        go_path(
+            name = gopath_name,
+            deps = [library, mockgen_tool],
+        )
         _gomock_source(
             name = name,
             library = library,
+            gopath_dep = gopath_name,
             out = out,
             **kwargs
         )
@@ -154,7 +147,7 @@ _gomock_prog_gen = go_rule(
     _gomock_prog_gen_impl,
     attrs = {
         "library": attr.label(
-            doc = "The target the Go library is at to look for the interfaces in. When this is set and source is not set, mockgen will use its reflect code to generate the mocks.",
+            doc = "The target the Go library is at to look for the interfaces in. When this is set and source is not set, mockgen will use its reflect code to generate the mocks. If source is set, its dependencies will be included in the GOPATH that mockgen will be run in.",
             providers = [GoLibrary],
             mandatory = True,
         ),
@@ -247,3 +240,35 @@ _gomock_prog_exec = go_rule(
         ),
     },
 )
+
+def _go_tool_run_shell_stdout(ctx, cmd, args, extra_inputs, out):
+    go_ctx = go_context(ctx)
+    gopath = "$(pwd)/" + ctx.var["BINDIR"] + "/" + ctx.attr.gopath_dep[GoPath].gopath
+
+    inputs = (
+        ctx.attr.gopath_dep.files.to_list() +
+        go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
+    ) + extra_inputs
+
+    # We can use the go binary from the stdlib for most of the environment
+    # variables, but our GOPATH is specific to the library target we were given.
+    ctx.actions.run_shell(
+        outputs = [out],
+        inputs = inputs,
+        tools = [
+            cmd,
+            go_ctx.go,
+        ],
+        command = """
+           source <($PWD/{godir}/go env) &&
+           export PATH=$GOROOT/bin:$PWD/{godir}:$PATH &&
+           export GOPATH={gopath} &&
+           {cmd} {args} > {out}
+        """.format(
+            godir = go_ctx.go.path[:-1 - len(go_ctx.go.basename)],
+            gopath = gopath,
+            cmd = "$(pwd)/" + cmd.path,
+            args = " ".join(args),
+            out = out.path,
+        ),
+    )
