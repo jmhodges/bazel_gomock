@@ -2,7 +2,7 @@ gomock for Bazel
 ================
 
 This skylark code allows you to generate code with `mockgen` (from
-[`golang/mock`](github.com/golang/mock)) and use that code as a dependency in
+[`golang/mock`](https://github.com/golang/mock)) and use that code as a dependency in
 your bazel projects. It handles all the `GOPATH` stuff for you.
 
 `bazel_gomock` requires a `rules_go` external to be set up in your `WORKSPACE`
@@ -11,7 +11,7 @@ override an argument; see below).
 
 You call it in your BUILD files as
 
-```
+```python
 gomock(
     name = "mock_sess",
     out = "mock_sess_test.go",
@@ -34,7 +34,7 @@ You use this target's `out` file directly in the `srcs` parameter in `go_test`,
 same BUILD file, you put `mock_sess_test.go` in the `srcs` parameter like so:
 
 
-```
+```python
 go_test(
     name = "go_default_test",
     srcs = [
