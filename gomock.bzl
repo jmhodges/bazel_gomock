@@ -133,7 +133,7 @@ def _gomock_prog_gen_impl(ctx):
     out = ctx.outputs.out
     ctx.actions.run_shell(
         outputs = [out],
-        inputs = [cmd],
+        tools = [cmd],
         command = """
            {cmd} {args} > {out}
         """.format(
