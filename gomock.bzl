@@ -5,17 +5,46 @@ _MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
 _MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
 
 def _gomock_source_impl(ctx):
-    args = ["-source", ctx.file.source.path]
+    go_ctx = go_context(ctx)
+    gopath = "$(pwd)/" + ctx.var["BINDIR"] + "/" + ctx.attr.gopath_dep[GoPath].gopath
+
+    # passed in source needs to be in gopath to not trigger module mode
+    args = ["-source", gopath + "/" + ctx.file.source.path]
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
     args += [",".join(ctx.attr.interfaces)]
 
-    _go_tool_run_shell_stdout(
-        ctx = ctx,
-        cmd = ctx.file.mockgen_tool,
-        args = args,
-        extra_inputs = [ctx.file.source],
-        out = ctx.outputs.out,
+    inputs = (
+        ctx.attr.gopath_dep.files.to_list() +
+        go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
+    ) + [ctx.file.source]
+
+    # We can use the go binary from the stdlib for most of the environment
+    # variables, but our GOPATH is specific to the library target we were given.
+    ctx.actions.run_shell(
+        outputs = [ctx.outputs.out],
+        inputs = inputs,
+        tools = [
+            ctx.file.mockgen_tool,
+            go_ctx.go,
+        ],
+        command = """
+           source <($PWD/{godir}/go env) &&
+           export PATH=$GOROOT/bin:$PWD/{godir}:$PATH &&
+           export GOPATH={gopath} &&
+           mkdir -p .gocache &&
+           export GOCACHE=$PWD/.gocache &&
+           {cmd} {args} > {out}
+        """.format(
+            godir = go_ctx.go.path[:-1 - len(go_ctx.go.basename)],
+            gopath = gopath,
+            cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
+            args = " ".join(args),
+            out = ctx.outputs.out.path,
+        ),
+        env = {
+            "GO111MODULE": "off",  # explicitly relying on passed in go_path to not download modules while doing codegen
+        },
     )
 
 _gomock_source = go_rule(
@@ -241,34 +270,3 @@ _gomock_prog_exec = go_rule(
     },
 )
 
-def _go_tool_run_shell_stdout(ctx, cmd, args, extra_inputs, out):
-    go_ctx = go_context(ctx)
-    gopath = "$(pwd)/" + ctx.var["BINDIR"] + "/" + ctx.attr.gopath_dep[GoPath].gopath
-
-    inputs = (
-        ctx.attr.gopath_dep.files.to_list() +
-        go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
-    ) + extra_inputs
-
-    # We can use the go binary from the stdlib for most of the environment
-    # variables, but our GOPATH is specific to the library target we were given.
-    ctx.actions.run_shell(
-        outputs = [out],
-        inputs = inputs,
-        tools = [
-            cmd,
-            go_ctx.go,
-        ],
-        command = """
-           source <($PWD/{godir}/go env) &&
-           export PATH=$GOROOT/bin:$PWD/{godir}:$PATH &&
-           export GOPATH={gopath} &&
-           {cmd} {args} > {out}
-        """.format(
-            godir = go_ctx.go.path[:-1 - len(go_ctx.go.basename)],
-            gopath = gopath,
-            cmd = "$(pwd)/" + cmd.path,
-            args = " ".join(args),
-            out = out.path,
-        ),
-    )
