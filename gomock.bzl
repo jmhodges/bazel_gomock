@@ -6,10 +6,11 @@ _MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
 
 def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)
-    gopath = "$(pwd)/" + ctx.var["BINDIR"] + "/" + ctx.attr.gopath_dep[GoPath].gopath
+    gopath = "$(pwd)/" + ctx.bin_dir.path + "/" + ctx.attr.gopath_dep[GoPath].gopath
 
     # passed in source needs to be in gopath to not trigger module mode
-    args = ["-source", gopath + "/" + ctx.file.source.path]
+    args = ["-source", gopath + "/src/" + ctx.attr.library[GoLibrary].importmap + "/"+ ctx.file.source.basename]
+
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
     args += [",".join(ctx.attr.interfaces)]
