@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_context", "go_path", "go_rule")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
 _MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
@@ -121,6 +122,9 @@ def gomock(name, library, out, **kwargs):
     mockgen_tool = _MOCKGEN_TOOL
     if kwargs.get("mockgen_tool", None):
         mockgen_tool = kwargs["mockgen_tool"]
+
+    if kwargs.get("self_package", None) and not kwargs.get("package", None):
+        kwargs["package"] = paths.basename(kwargs["self_package"])
 
     if kwargs.get("source", None):
         gopath_name = name + "_gomock_gopath"
