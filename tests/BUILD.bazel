@@ -5,7 +5,7 @@ go_bazel_test(
     srcs = ["bazel_gomock_test.go"],
     args = [
         "-gomockPath",
-        "$(location //:gomock.bzl)", 
+        "$(location //:gomock.bzl)",
     ],
     data = ["//:gomock.bzl"]
 )
