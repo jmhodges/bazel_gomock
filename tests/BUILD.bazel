@@ -1,0 +1,11 @@
+load("@io_bazel_rules_go//go/tools/bazel_testing:def.bzl", "go_bazel_test")
+
+go_bazel_test(
+    name = "bazel_gomock_test",
+    srcs = ["bazel_gomock_test.go"],
+    args = [
+        "-gomockPath",
+        "$(location //:gomock.bzl)", 
+    ],
+    data = ["//:gomock.bzl"]
+)
