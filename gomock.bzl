@@ -150,6 +150,7 @@ def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
         prog_bin = prog_bin,
         mockgen_tool = mockgen_tool,
         self_package = kwargs.get("self_package", None),
+        visibility = kwargs.get("visibility", None),
     )
 
 def _gomock_prog_gen_impl(ctx):
@@ -270,4 +271,3 @@ _gomock_prog_exec = go_rule(
         ),
     },
 )
-
