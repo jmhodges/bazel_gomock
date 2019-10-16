@@ -13,6 +13,8 @@ def _gomock_source_impl(ctx):
 
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
+    if ctx.attr.self_package != "":
+        args += ["-self_package", ctx.attr.self_package]
     args += [",".join(ctx.attr.interfaces)]
 
     inputs = (
