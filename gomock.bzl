@@ -11,6 +11,13 @@ def _gomock_source_impl(ctx):
     # passed in source needs to be in gopath to not trigger module mode
     args = ["-source", gopath + "/src/" + ctx.attr.library[GoLibrary].importmap + "/"+ ctx.file.source.basename]
 
+    if len(ctx.attr.aux_files) > 0:
+        aux_files = []
+        for pkg, files in ctx.attr.aux_files.items():
+            for f in files:
+                mapped_f = gopath + "/src/" + ctx.attr.library[GoLibrary].importmap + "/"+ f
+                aux_files.append("{0}={1}".format(pkg, mapped_f))
+        args += ["-aux_files", ",".join(aux_files)]
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
     args += [",".join(ctx.attr.interfaces)]
@@ -69,6 +76,10 @@ _gomock_source = go_rule(
             allow_empty = False,
             doc = "The names of the Go interfaces to generate mocks for. If not set, all of the interfaces in the library or source file will have mocks generated for them.",
             mandatory = True,
+        ),
+	"aux_files": attr.string_list_dict(
+            default = {},
+            doc = "A map from packages to auxilliary Go source files to load for those packages.",
         ),
         "package": attr.string(
             doc = "The name of the package the generated mocks should be in. If not specified, uses mockgen's default.",
