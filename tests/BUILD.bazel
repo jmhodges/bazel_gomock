@@ -1,16 +1,65 @@
 load("//:gomock.bzl", "gomock")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
 
+# keep
 gomock(
-    name = "helloer_mock",
+    name = "helloer_reflect_mock",
     interfaces = ["Helloer"],
     out = "hello_mock.go",
     package = "main",
     library = "//tests/hello:go_default_library",
 )
 
+# keep
+gomock(
+    name = "helloer_mock_with_copyright",
+    interfaces = ["Helloer"],
+    out = "helloer_copyright.go",
+    package = "main",
+    library = "//tests/hello:go_default_library",
+    copyright_file = "fake_copyright.txt",
+)
+
+# keep
+gomock(
+    name = "helloer_source_mock",
+    interfaces = ["Helloer"],
+    out = "helloer_source_mock.go",
+    mock_names = {"Helloer": "MockSourceHelloer"},
+    package = "main",
+    library = "//tests/hello:go_default_library",
+)
+
+# keep
+gomock(
+    name = "helloer_reflect_mock_with_mock_names",
+    interfaces = ["Helloer"],
+    out = "hello_mock_renamed.go",
+    package = "main",
+    library = "//tests/hello:go_default_library",
+    mock_names = {"Helloer": "MockRenamedReflectHelloer"},
+)
+
+# keep
 go_test(
     name = "go_default_test",
-    srcs = ["gomock_test.go", ":helloer_mock"],
-    deps = ["@com_github_golang_mock//gomock:go_default_library"],
+    srcs = [
+        "gomock_test.go",
+        ":helloer_reflect_mock",
+        ":helloer_source_mock",
+        ":helloer_reflect_mock_with_mock_names",
+    ],
+    args = [
+        "-srcWithCopyright=$(location :helloer_mock_with_copyright)",
+        "-copyright=$(location fake_copyright.txt)",
+    ],
+    data = [
+        ":helloer_mock_with_copyright",
+        "fake_copyright.txt",
+    ],
+    deps = [
+        "@com_github_golang_mock//gomock:go_default_library",
+        "@io_bazel_rules_go//go/tools/bazel:go_default_library",
+        "@com_github_google_go_cmp//cmp:go_default_library",
+    ],
 )
