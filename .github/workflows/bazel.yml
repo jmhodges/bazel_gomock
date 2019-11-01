@@ -1,0 +1,20 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+name: Bazel
+jobs:
+  checks:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+
+    - name: Run the tests
+      uses: ngalaiko/bazel-action/1.1.0@master
+      with:
+        args: test //tests/...
