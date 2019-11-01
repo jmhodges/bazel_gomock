@@ -13,6 +13,8 @@ def _gomock_source_impl(ctx):
 
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
+    if ctx.attr.self_package != "":
+        args += ["-self_package", ctx.attr.self_package]
     if len(ctx.attr.imports) > 0:
         imports = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.imports.items()])
         args += ["-imports", imports]
