@@ -13,6 +13,9 @@ def _gomock_source_impl(ctx):
 
     if ctx.attr.package != "":
         args += ["-package", ctx.attr.package]
+    if len(ctx.attr.imports) > 0:
+        imports = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.imports.items()])
+        args += ["-imports", imports]
     if len(ctx.attr.mock_names) > 0:
         mock_names = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.mock_names.items()])
         args += ["-mock_names", mock_names]
@@ -79,6 +82,8 @@ _gomock_source = go_rule(
         "self_package": attr.string(
             doc = "The full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.",
         ),
+        "imports": attr.string_dict(
+            doc = "Dictionary of name-path pairs of explicit imports to use.",
         "mock_names": attr.string_dict(
             doc = "Dictionary of interfaceName-mockName pairs of explicit mock names to use. Mock names default to 'Mock'+ interfaceName suffix.",
             default = {},
