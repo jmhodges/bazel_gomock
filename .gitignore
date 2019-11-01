@@ -1,0 +1,5 @@
+bazel-bazel_gomock
+bazel-bin
+bazel-genfiles
+bazel-out
+bazel-testlogs

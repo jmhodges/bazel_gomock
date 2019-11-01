@@ -1,0 +1,16 @@
+load("//:gomock.bzl", "gomock")
+load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library", "go_test")
+
+gomock(
+    name = "helloer_mock",
+    interfaces = ["Helloer"],
+    out = "hello_mock.go",
+    package = "main",
+    library = "//tests/hello:go_default_library",
+)
+
+go_test(
+    name = "go_default_test",
+    srcs = ["gomock_test.go", ":helloer_mock"],
+    deps = ["@com_github_golang_mock//gomock:go_default_library"],
+)
