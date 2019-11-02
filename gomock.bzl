@@ -93,7 +93,7 @@ _gomock_source = go_rule(
             doc = "Dictionary of name-path pairs of explicit imports to use.",
         ),
         "mock_names": attr.string_dict(
-            doc = "Dictionary of interfaceName-mockName pairs of explicit mock names to use. Mock names default to 'Mock'+ interfaceName suffix.",
+            doc = "Dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface.",
             default = {},
         ),
         "copyright_file": attr.label(
