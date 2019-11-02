@@ -13,7 +13,6 @@ def _gomock_source_impl(ctx):
 
     args, needed_files = _handle_shared_args(ctx, args)
 
-    # FIXME add to _handle_shared_args
     if len(ctx.attr.aux_files) > 0:
         aux_files = []
         for pkg, files in ctx.attr.aux_files.items():
