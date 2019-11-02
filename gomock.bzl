@@ -11,6 +11,9 @@ def _gomock_source_impl(ctx):
     # passed in source needs to be in gopath to not trigger module mode
     args = ["-source", gopath + "/src/" + ctx.attr.library[GoLibrary].importmap + "/"+ ctx.file.source.basename]
 
+    args, needed_files = _handle_shared_args(ctx, args)
+
+    # FIXME add to _handle_shared_args
     if len(ctx.attr.aux_files) > 0:
         aux_files = []
         for pkg, files in ctx.attr.aux_files.items():
@@ -18,20 +21,11 @@ def _gomock_source_impl(ctx):
                 mapped_f = gopath + "/src/" + ctx.attr.library[GoLibrary].importmap + "/"+ f
                 aux_files.append("{0}={1}".format(pkg, mapped_f))
         args += ["-aux_files", ",".join(aux_files)]
-    if ctx.attr.package != "":
-        args += ["-package", ctx.attr.package]
-    if ctx.attr.self_package != "":
-        args += ["-self_package", ctx.attr.self_package]
-    if len(ctx.attr.imports) > 0:
-        imports = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.imports.items()])
-        args += ["-imports", imports]
-    if len(ctx.attr.mock_names) > 0:
-        mock_names = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.mock_names.items()])
-        args += ["-mock_names", mock_names]
+
     args += [",".join(ctx.attr.interfaces)]
 
     inputs = (
-        ctx.attr.gopath_dep.files.to_list() +
+        ctx.attr.gopath_dep.files.to_list() + needed_files +
         go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
     ) + [ctx.file.source]
 
@@ -57,6 +51,7 @@ def _gomock_source_impl(ctx):
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
             args = " ".join(args),
             out = ctx.outputs.out.path,
+            mnemonic = "GoMockSourceGen",
         ),
         env = {
             "GO111MODULE": "off",  # explicitly relying on passed in go_path to not download modules while doing codegen
@@ -102,6 +97,11 @@ _gomock_source = go_rule(
             doc = "Dictionary of interfaceName-mockName pairs of explicit mock names to use. Mock names default to 'Mock'+ interfaceName suffix.",
             default = {},
         ),
+        "copyright_file": attr.label(
+            doc = "Optional file containing copyright to prepend to the generated contents.",
+            allow_single_file = True,
+            mandatory = False,
+        ),
         "gopath_dep": attr.label(
             doc = "The go_path label to use to create the GOPATH for the given library. Will be set correctly by the gomock macro, so you don't need to set it.",
             providers = [GoPath],
@@ -134,7 +134,7 @@ def gomock(name, library, out, **kwargs):
             library = library,
             gopath_dep = gopath_name,
             out = out,
-            **kwargs
+            **kwargs,
         )
     else:
         _gomock_reflect(
@@ -142,11 +142,12 @@ def gomock(name, library, out, **kwargs):
             library = library,
             out = out,
             mockgen_tool = mockgen_tool,
-            **kwargs
+            **kwargs,
         )
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
-    interfaces = kwargs.get("interfaces", None)
+    interfaces = kwargs.pop("interfaces", None)
+
     mockgen_model_lib = _MOCKGEN_MODEL_LIB
     if kwargs.get("mockgen_model_library", None):
         mockgen_model_lib = kwargs["mockgen_model_library"]
@@ -157,7 +158,6 @@ def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
         name = prog_src,
         interfaces = interfaces,
         library = library,
-        package = kwargs.get("package", None),
         out = prog_src_out,
         mockgen_tool = mockgen_tool,
     )
@@ -171,18 +171,14 @@ def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
         name = name,
         interfaces = interfaces,
         library = library,
-        package = kwargs.get("package", None),
         out = out,
         prog_bin = prog_bin,
         mockgen_tool = mockgen_tool,
-        self_package = kwargs.get("self_package", None),
-        visibility = kwargs.get("visibility", None),
+        **kwargs,
     )
 
 def _gomock_prog_gen_impl(ctx):
     args = ["-prog_only"]
-    if ctx.attr.package != "":
-        args += ["-package", ctx.attr.package]
     args += [ctx.attr.library[GoLibrary].importpath]
     args += [",".join(ctx.attr.interfaces)]
 
@@ -198,6 +194,7 @@ def _gomock_prog_gen_impl(ctx):
             args = " ".join(args),
             out = out.path,
         ),
+        mnemonic = "GoMockReflectProgOnlyGen"
     )
 
 _gomock_prog_gen = go_rule(
@@ -217,9 +214,6 @@ _gomock_prog_gen = go_rule(
             doc = "The names of the Go interfaces to generate mocks for. If not set, all of the interfaces in the library or source file will have mocks generated for them.",
             mandatory = True,
         ),
-        "package": attr.string(
-            doc = "The name of the package the generated mocks should be in. If not specified, uses mockgen's default.",
-        ),
         "mockgen_tool": attr.label(
             doc = "The mockgen tool to run",
             default = Label(_MOCKGEN_TOOL),
@@ -233,21 +227,16 @@ _gomock_prog_gen = go_rule(
 
 def _gomock_prog_exec_impl(ctx):
     args = ["-exec_only", ctx.file.prog_bin.path]
-    if ctx.attr.package != "":
-        args += ["-package", ctx.attr.package]
-    if len(ctx.attr.mock_names) > 0:
-        mock_names = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.mock_names.items()])
-        args += ["-mock_names", mock_names]
+    args, needed_files = _handle_shared_args(ctx, args)
 
-    if ctx.attr.self_package != "":
-        args += ["-self_package", ctx.attr.self_package]
-
+    # annoyingly, the interfaces join has to go after the importpath so we can't
+    # share those.
     args += [ctx.attr.library[GoLibrary].importpath]
     args += [",".join(ctx.attr.interfaces)]
 
     ctx.actions.run_shell(
         outputs = [ctx.outputs.out],
-        inputs = [ctx.file.prog_bin],
+        inputs = [ctx.file.prog_bin] + needed_files,
         tools = [ctx.file.mockgen_tool],
         command = """{cmd} {args} > {out}""".format(
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
@@ -258,6 +247,7 @@ def _gomock_prog_exec_impl(ctx):
             # GOCACHE is required starting in Go 1.12
             "GOCACHE": "./.gocache",
         },
+        mnemonic = "GoMockReflectExecOnlyGen",
     )
 
 _gomock_prog_exec = go_rule(
@@ -283,9 +273,17 @@ _gomock_prog_exec = go_rule(
         "self_package": attr.string(
             doc = "The full package import path for the generated code. The purpose of this flag is to prevent import cycles in the generated code by trying to include its own package. This can happen if the mock's package is set to one of its inputs (usually the main one) and the output is stdio so mockgen cannot detect the final output package. Setting this flag will then tell mockgen which import to exclude.",
         ),
+        "imports": attr.string_dict(
+            doc = "Dictionary of name-path pairs of explicit imports to use.",
+        ),
         "mock_names": attr.string_dict(
             doc = "Dictionary of interfaceName-mockName pairs of explicit mock names to use. Mock names default to 'Mock'+ interfaceName suffix.",
             default = {},
+        ),
+        "copyright_file": attr.label(
+            doc = "Optional file containing copyright to prepend to the generated contents.",
+            allow_single_file = True,
+            mandatory = False,
         ),
         "prog_bin": attr.label(
             doc = "The program binary generated by mockgen's -prog_only and compiled by bazel.",
@@ -304,3 +302,22 @@ _gomock_prog_exec = go_rule(
         ),
     },
 )
+
+def _handle_shared_args(ctx, args):
+    needed_files = []
+
+    if ctx.attr.package != "":
+        args += ["-package", ctx.attr.package]
+    if ctx.attr.self_package != "":
+        args += ["-self_package", ctx.attr.self_package]
+    if len(ctx.attr.imports) > 0:
+        imports = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.imports.items()])
+        args += ["-imports", imports]
+    if ctx.file.copyright_file != None:
+        args += ["-copyright_file", ctx.file.copyright_file.path]
+        needed_files.append(ctx.file.copyright_file)
+    if len(ctx.attr.mock_names) > 0:
+        mock_names = ",".join(["{0}={1}".format(name, pkg) for name, pkg in ctx.attr.mock_names.items()])
+        args += ["-mock_names", mock_names]
+
+    return args, needed_files
