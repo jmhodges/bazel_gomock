@@ -73,3 +73,18 @@ prog.go:13:2: import "your/main/package/deal" is a program, not an importable pa
 
 You can resolve that by setting the `source` parameter to the location of the
 file with the interfaces you want in it.
+
+## `gomock` arguments:
+
+| Name | Default value | Type | Documentation |
+|------|---------------|------|---------------|
+| name | | string | The name of the target. (Required.) |
+| library| | Label | The go_library to find the interfaces in. (Required.) |
+| interfaces | | list of string | The names of interfaces in `library` to generate mocks for. (Required.) |
+| out | | string | The file name to give the generated output. (Required.) |
+| package | | string | The package name to use in the generated output. See the gomock documentation on `-package` for more information. |
+| imports | | string\_dict | Dictionary of keys of package names and values of import paths to use the keys as the identifier to use when the generated output uses the given import path. See the gomock documentation on `-imports` for more information. | 
+| self\_package | |  string | The full import path for the generated code. See the gomock documentation on `-self_package` for more information. |
+| mock\_names | | string\_dict | Dictionary of interface name to mock name pairs to change the output names of the mock objects. Mock names default to 'Mock' prepended to the name of the interface. See the gomock documentation on `-mock_names` for more information. |
+| copyright\_file | | Label | The file containing the copyright to prepend to the generated output. See the gomock documentation on `-copyright_file` for more information. |
+| aux\_files | | string\_list\_dict | A map from packages to auxilliary Go source files to load for those packages. Currently, assumes that the file (the value) is a path relative to the directory of `library` in the GOPATH. See the gomock documentation on `-aux_files` for more information. |
