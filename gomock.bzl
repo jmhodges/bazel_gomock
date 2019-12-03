@@ -133,16 +133,14 @@ def gomock(name, library, out, **kwargs):
             library = library,
             gopath_dep = gopath_name,
             out = out,
-            **kwargs,
-        )
+            **kwargs)
     else:
         _gomock_reflect(
             name = name,
             library = library,
             out = out,
             mockgen_tool = mockgen_tool,
-            **kwargs,
-        )
+            **kwargs)
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
     interfaces = kwargs.pop("interfaces", None)
@@ -173,8 +171,7 @@ def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
         out = out,
         prog_bin = prog_bin,
         mockgen_tool = mockgen_tool,
-        **kwargs,
-    )
+        **kwargs)
 
 def _gomock_prog_gen_impl(ctx):
     args = ["-prog_only"]
