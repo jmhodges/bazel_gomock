@@ -21,8 +21,6 @@ def _gomock_source_impl(ctx):
                 aux_files.append("{0}={1}".format(pkg, mapped_f))
         args += ["-aux_files", ",".join(aux_files)]
 
-    args += [",".join(ctx.attr.interfaces)]
-
     inputs = (
         ctx.attr.gopath_dep.files.to_list() + needed_files +
         go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
@@ -72,11 +70,6 @@ _gomock_source = go_rule(
         ),
         "out": attr.output(
             doc = "The new Go file to emit the generated mocks into",
-            mandatory = True,
-        ),
-        "interfaces": attr.string_list(
-            allow_empty = False,
-            doc = "The names of the Go interfaces to generate mocks for. If not set, all of the interfaces in the library or source file will have mocks generated for them.",
             mandatory = True,
         ),
 	"aux_files": attr.string_list_dict(
