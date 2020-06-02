@@ -1,5 +1,6 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_context")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
 _MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
@@ -7,8 +8,16 @@ _MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
 def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)
 
+    # create GOPATH and copy source into GOPATH
+    gopath = ctx.actions.declare_directory("gopath")
+    source = ctx.actions.declare_file(paths.join("gopath", "src", ctx.attr.library[GoLibrary].importmap, ctx.file.source.basename))
+    ctx.actions.run_shell(
+        outputs=[gopath, source],
+        inputs=[ctx.file.source],
+        command = "mkdir -p {0} && cp -L {1} {0}".format(source.dirname, ctx.file.source.path),
+    )
     # passed in source needs to be in gopath to not trigger module mode
-    args = ["-source", ctx.file.source.path]
+    args = ["-source", source.path]
 
     args, needed_files = _handle_shared_args(ctx, args)
 
@@ -16,14 +25,20 @@ def _gomock_source_impl(ctx):
         aux_files = []
         for target, pkg in ctx.attr.aux_files.items():
             f = target.files.to_list()[0]
-            aux_files.append("{0}={1}".format(pkg, f.path))
+            aux = ctx.actions.declare_file(paths.join("gopath", "src", pkg, f.basename))
+            ctx.actions.run_shell(
+                outputs=[aux],
+                inputs=[f],
+                command = "mkdir -p {0} && cp -L {1} {0}".format(aux.dirname, f.path)
+            )
+            aux_files.append("{0}={1}".format(pkg, aux.path))
             needed_files.append(f)
         args += ["-aux_files", ",".join(aux_files)]
 
     inputs = (
         needed_files +
         go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
-    ) + [ctx.file.source]
+    ) + [source, gopath]
 
     # We can use the go binary from the stdlib for most of the environment
     # variables, but our GOPATH is specific to the library target we were given.
@@ -35,9 +50,10 @@ def _gomock_source_impl(ctx):
             go_ctx.go,
         ],
         command = """
-            export GOPATH=$PWD
-           {cmd} {args} > {out}
+            export GOPATH=$(pwd)/{gopath} &&
+            {cmd} {args} > {out}
         """.format(
+            gopath = gopath.path,
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
             args = " ".join(args),
             out = ctx.outputs.out.path,
