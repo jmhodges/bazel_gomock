@@ -107,7 +107,11 @@ _gomock_source = rule(
             cfg = "exec",
             mandatory = False,
         ),
+        "_go_context_data": attr.label(
+            default = "@io_bazel_rules_go//:go_context_data",
+        ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def gomock(name, library, out, **kwargs):
@@ -211,7 +215,11 @@ _gomock_prog_gen = rule(
             cfg = "exec",
             mandatory = False,
         ),
+        "_go_context_data": attr.label(
+            default = "@io_bazel_rules_go//:go_context_data",
+        ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _gomock_prog_exec_impl(ctx):
@@ -288,8 +296,12 @@ _gomock_prog_exec = rule(
             executable = True,
             cfg = "exec",
             mandatory = False,
+	),
+        "_go_context_data": attr.label(
+            default = "@io_bazel_rules_go//:go_context_data",
         ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _handle_shared_args(ctx, args):

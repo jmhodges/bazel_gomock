@@ -7,7 +7,7 @@ gomock(
     interfaces = ["Helloer"],
     out = "hello_mock.go",
     package = "main",
-    library = "//tests/hello:go_default_library",
+    library = "//tests/hello:hello",
 )
 
 # keep
@@ -16,7 +16,7 @@ gomock(
     interfaces = ["Helloer"],
     out = "helloer_copyright.go",
     package = "main",
-    library = "//tests/hello:go_default_library",
+    library = "//tests/hello:hello",
     copyright_file = "fake_copyright.txt",
 )
 
@@ -27,7 +27,7 @@ gomock(
     out = "helloer_source_mock.go",
     mock_names = {"Helloer": "MockSourceHelloer"},
     package = "main",
-    library = "//tests/hello:go_default_library",
+    library = "//tests/hello:hello",
 )
 
 # keep
@@ -36,7 +36,7 @@ gomock(
     interfaces = ["Helloer"],
     out = "hello_mock_renamed.go",
     package = "main",
-    library = "//tests/hello:go_default_library",
+    library = "//tests/hello:hello",
     mock_names = {"Helloer": "MockRenamedReflectHelloer"},
 )
 
