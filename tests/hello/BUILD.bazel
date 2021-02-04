@@ -1,7 +1,7 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
 go_library(
-    name = "go_default_library",
+    name = "hello",
     srcs = ["hello.go"],
     importpath = "github.com/jmhodges/bazel_gomock/tests/hello",
     visibility = ["//visibility:public"],

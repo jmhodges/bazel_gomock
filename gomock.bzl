@@ -55,7 +55,7 @@ def _gomock_source_impl(ctx):
         },
     )
 
-_gomock_source = go_rule(
+_gomock_source = rule(
     _gomock_source_impl,
     attrs = {
         "library": attr.label(
@@ -107,7 +107,11 @@ _gomock_source = go_rule(
             cfg = "exec",
             mandatory = False,
         ),
+        "_go_context_data": attr.label(
+            default = "@io_bazel_rules_go//:go_context_data",
+        ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def gomock(name, library, out, **kwargs):
@@ -186,7 +190,7 @@ def _gomock_prog_gen_impl(ctx):
         mnemonic = "GoMockReflectProgOnlyGen"
     )
 
-_gomock_prog_gen = go_rule(
+_gomock_prog_gen = rule(
     _gomock_prog_gen_impl,
     attrs = {
         "library": attr.label(
@@ -211,7 +215,11 @@ _gomock_prog_gen = go_rule(
             cfg = "exec",
             mandatory = False,
         ),
+        "_go_context_data": attr.label(
+            default = "@io_bazel_rules_go//:go_context_data",
+        ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _gomock_prog_exec_impl(ctx):
@@ -239,7 +247,7 @@ def _gomock_prog_exec_impl(ctx):
         mnemonic = "GoMockReflectExecOnlyGen",
     )
 
-_gomock_prog_exec = go_rule(
+_gomock_prog_exec = rule(
     _gomock_prog_exec_impl,
     attrs = {
         "library": attr.label(
@@ -288,8 +296,12 @@ _gomock_prog_exec = go_rule(
             executable = True,
             cfg = "exec",
             mandatory = False,
+	),
+        "_go_context_data": attr.label(
+            default = "@io_bazel_rules_go//:go_context_data",
         ),
     },
+    toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
 def _handle_shared_args(ctx, args):
