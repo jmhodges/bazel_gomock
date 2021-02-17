@@ -5,13 +5,47 @@ This skylark code allows you to generate code with `mockgen` (from
 [`golang/mock`](https://github.com/golang/mock)) and use that code as a dependency in
 your bazel projects. It handles all the `GOPATH` stuff for you.
 
-`bazel_gomock` requires a `rules_go` external to be set up in your `WORKSPACE`
-as well as a go_repository setup for `com_github_golang_mock` (unless you
-override an argument; see below).
 
-You call it in your BUILD files as
+Setup
+---
+
+`bazel_gomock` requires a `rules_go` external to be set up in your `WORKSPACE`
+as well as a `go_repository` call for `com_github_golang_mock`.
+
+Then in your `WORKSPACE`, add
 
 ```python
+# This commit is tagged as v1.3
+bazel_gomock_commit = "fde78c91cf1783cc1e33ba278922ba67a6ee2a84"
+http_archive(
+    name = "bazel_gomock",
+    sha256 = "692421b0c5e04ae4bc0bfff42fb1ce8671fe68daee2b8d8ea94657bb1fcddc0a",
+    strip_prefix = "bazel_gomock-{v}".format(v = bazel_gomock_commit),
+    urls = [
+        "https://github.com/jmhodges/bazel_gomock/archive/{v}.tar.gz".format(v = bazel_gomock_commit),
+    ],
+)
+```
+
+An example of a `com_github_golang_mock` you'd need:
+
+```python
+go_repository(
+    name = "com_github_golang_mock",
+    importpath = "github.com/golang/mock",
+    sum = "h1:l75CXGRSwbaYNpl/Z2X1XIIAMSCquvXgpVZDhwEIJsc=",
+    version = "v1.4.4",
+)
+```
+
+Use
+---
+
+Once your `WORKSPACE` is set up, you can call `gomock` in your BUILD files like:
+
+```python
+load("@bazel_gomock//:gomock.bzl", "gomock")
+
 gomock(
     name = "mock_sess",
     out = "mock_sess_test.go",

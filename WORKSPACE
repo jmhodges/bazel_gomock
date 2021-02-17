@@ -11,12 +11,11 @@ http_archive(
     ],
 )
 
-
-load("@io_bazel_rules_go//go:deps.bzl", "go_rules_dependencies", "go_register_toolchains")
+load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 
 go_rules_dependencies()
 
-go_register_toolchains(version="1.15.5")
+go_register_toolchains(version = "1.15.5")
 
 http_archive(
     name = "bazel_gazelle",
@@ -28,13 +27,14 @@ http_archive(
 )
 
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
+
 gazelle_dependencies()
 
 go_repository(
     name = "com_github_golang_mock",
     importpath = "github.com/golang/mock",
-    sum = "h1:qGJ6qTW+x6xX/my+8YUVl4WNpX9B7+/l2tRsHGZ7f2s=",
-    version = "v1.3.1",
+    sum = "h1:l75CXGRSwbaYNpl/Z2X1XIIAMSCquvXgpVZDhwEIJsc=",
+    version = "v1.4.4",
 )
 
 go_repository(
@@ -45,8 +45,8 @@ go_repository(
 )
 
 go_repository(
-     name = "org_golang_x_mod",
-     importpath = "golang.org/x/mod",
-     sum = "h1:xUIPaMhvROX9dhPvRCenIJtU78+lbEenGbgqB5hfHCQ=",
-     version = "v0.3.1-0.20200828183125-ce943fd02449",
- )
+    name = "org_golang_x_mod",
+    importpath = "golang.org/x/mod",
+    sum = "h1:xUIPaMhvROX9dhPvRCenIJtU78+lbEenGbgqB5hfHCQ=",
+    version = "v0.3.1-0.20200828183125-ce943fd02449",
+)
