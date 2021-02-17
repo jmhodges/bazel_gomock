@@ -80,8 +80,8 @@ file with the interfaces you want in it.
 |------|---------------|------|---------------|
 | name | | string | The name of the target. (Required.) |
 | library| | Label | The go_library to find the interfaces in. (Required.) |
-| interfaces | | list of string | The names of interfaces in `library` to generate mocks for. (Required when `source` is not provided) |
-| source | | string | The Go source file that contains interfaces to be mocked. See the gomock documentation on `-source` for more information. |
+| interfaces | | list of string | The names of interfaces in `library` to generate mocks for. (Required if `source` is not set, and ignored if `source` is set.) |
+| source | | string | Prefer using `library` only, instead of using this argument. The Go source file to generate interfaces from. If this is set, `interfaces` is ignored because `mockgen` will always generate code for all interfaces. See the gomock documentation on `-source` for more information. |
 | out | | string | The file name to give the generated output. (Required.) |
 | package | | string | The package name to use in the generated output. See the gomock documentation on `-package` for more information. |
 | imports | | string\_dict | Dictionary of keys of package names and values of import paths to use the keys as the identifier to use when the generated output uses the given import path. See the gomock documentation on `-imports` for more information. |
