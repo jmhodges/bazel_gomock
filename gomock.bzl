@@ -75,7 +75,7 @@ _gomock_source = rule(
         "interfaces": attr.string_list(
             allow_empty = False,
             doc = "Ignored. If `source` is not set, this would be the list of Go interfaces to generate mocks for.",
-            mandatory = True,
+            mandatory = False,
         ),
 	"aux_files": attr.string_list_dict(
             default = {},
