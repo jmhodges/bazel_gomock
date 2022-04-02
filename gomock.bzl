@@ -9,10 +9,12 @@ def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)
 
     # create GOPATH and copy source into GOPATH
-    gopath = ctx.actions.declare_directory("gopath")
-    source = ctx.actions.declare_file(paths.join("gopath", "src", ctx.attr.library[GoLibrary].importmap, ctx.file.source.basename))
+    source_relative_path = paths.join("src", ctx.attr.library[GoLibrary].importmap, ctx.file.source.basename)
+    source = ctx.actions.declare_file(paths.join("gopath", source_relative_path))
+    # trim the relative path of source to get GOPATH
+    gopath = source.path[:-len(source_relative_path)]
     ctx.actions.run_shell(
-        outputs=[gopath, source],
+        outputs=[source],
         inputs=[ctx.file.source],
         command = "mkdir -p {0} && cp -L {1} {0}".format(source.dirname, ctx.file.source.path),
     )
@@ -25,7 +27,7 @@ def _gomock_source_impl(ctx):
         aux_files = []
         for target, pkg in ctx.attr.aux_files.items():
             f = target.files.to_list()[0]
-            aux = ctx.actions.declare_file(paths.join("gopath", "src", pkg, f.basename))
+            aux = ctx.actions.declare_file(paths.join(gopath, "src", pkg, f.basename))
             ctx.actions.run_shell(
                 outputs=[aux],
                 inputs=[f],
@@ -38,7 +40,7 @@ def _gomock_source_impl(ctx):
     inputs = (
         needed_files +
         go_ctx.sdk.headers + go_ctx.sdk.srcs + go_ctx.sdk.tools
-    ) + [source, gopath]
+    ) + [source]
 
     # We can use the go binary from the stdlib for most of the environment
     # variables, but our GOPATH is specific to the library target we were given.
@@ -53,7 +55,7 @@ def _gomock_source_impl(ctx):
             export GOPATH=$(pwd)/{gopath} &&
             {cmd} {args} > {out}
         """.format(
-            gopath = gopath.path,
+            gopath = gopath,
             cmd = "$(pwd)/" + ctx.file.mockgen_tool.path,
             args = " ".join(args),
             out = ctx.outputs.out.path,
@@ -89,7 +91,7 @@ _gomock_source = rule(
         ),
         "aux_files": attr.label_keyed_string_dict(
             default = {},
-            doc = "A map auxilliary Go source files to their packages.",
+            doc = "A map from auxilliary Go source files to their packages.",
             allow_files = True,
         ),
         "package": attr.string(
