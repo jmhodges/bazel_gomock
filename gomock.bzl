@@ -55,6 +55,13 @@ def _gomock_source_impl(ctx):
         },
     )
 
+    return [
+        DefaultInfo(files = depset([ctx.outputs.out])),
+        OutputGroupInfo(
+            go_generated_srcs = [ctx.outputs.out],
+        ),
+    ]
+
 _gomock_source = rule(
     _gomock_source_impl,
     attrs = {
@@ -130,19 +137,21 @@ def gomock(name, library, out, **kwargs):
             name = gopath_name,
             deps = [library, mockgen_tool],
         )
-        _gomock_source(
+        return _gomock_source(
             name = name,
             library = library,
             gopath_dep = gopath_name,
             out = out,
-            **kwargs)
+            **kwargs
+        )
     else:
-        _gomock_reflect(
+        return _gomock_reflect(
             name = name,
             library = library,
             out = out,
             mockgen_tool = mockgen_tool,
-            **kwargs)
+            **kwargs
+        )
 
 def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
     interfaces = kwargs.pop("interfaces", None)
@@ -166,14 +175,16 @@ def _gomock_reflect(name, library, out, mockgen_tool, **kwargs):
         srcs = [prog_src_out],
         deps = [library, mockgen_model_lib],
     )
-    _gomock_prog_exec(
+
+    return _gomock_prog_exec(
         name = name,
         interfaces = interfaces,
         library = library,
         out = out,
         prog_bin = prog_bin,
         mockgen_tool = mockgen_tool,
-        **kwargs)
+        **kwargs
+    )
 
 def _gomock_prog_gen_impl(ctx):
     args = ["-prog_only"]
@@ -251,6 +262,13 @@ def _gomock_prog_exec_impl(ctx):
         },
         mnemonic = "GoMockReflectExecOnlyGen",
     )
+
+    return [
+        DefaultInfo(files = depset([ctx.outputs.out])),
+        OutputGroupInfo(
+            go_generated_srcs = [ctx.outputs.out],
+        ),
+    ]
 
 _gomock_prog_exec = rule(
     _gomock_prog_exec_impl,
