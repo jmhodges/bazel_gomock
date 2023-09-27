@@ -1,8 +1,8 @@
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_context", "go_path")
 load("@io_bazel_rules_go//go/private:providers.bzl", "GoLibrary", "GoPath")
 
-_MOCKGEN_TOOL = "@com_github_golang_mock//mockgen"
-_MOCKGEN_MODEL_LIB = "@com_github_golang_mock//mockgen/model:go_default_library"
+_MOCKGEN_TOOL = "@org_uber_go_mock//mockgen"
+_MOCKGEN_MODEL_LIB = "@org_uber_go_mock//mockgen/model:go_default_library"
 
 def _gomock_source_impl(ctx):
     go_ctx = go_context(ctx)
