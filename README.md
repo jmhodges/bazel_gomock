@@ -1,3 +1,15 @@
+This project is deprecated and a newer version is supported by the rules_go
+project itself. You can now load the `gomock` macro with:
+
+
+```skylark
+load("@io_bazel_rules_go//go:def.bzl", "gomock")
+```
+
+However, some of the ways import paths are handled differ, so the docs below
+might not exactly match behavior. (There's a ticket for adding some docs in
+https://github.com/bazelbuild/rules_go/issues/3721)
+
 gomock for Bazel
 ================
 
