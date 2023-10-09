@@ -31,10 +31,10 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies", "go_repository")
 gazelle_dependencies()
 
 go_repository(
-    name = "com_github_golang_mock",
-    importpath = "github.com/golang/mock",
-    sum = "h1:l75CXGRSwbaYNpl/Z2X1XIIAMSCquvXgpVZDhwEIJsc=",
-    version = "v1.4.4",
+    name = "org_uber_go_mock",
+    importpath = "go.uber.org/mock",
+    sum = "h1:NEVjcPIj/L96qilPi+2M5l9zUkQksRaqNKphz3pStHI=",
+    version = "v0.1.0",
 )
 
 go_repository(

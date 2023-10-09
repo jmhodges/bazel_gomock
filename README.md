@@ -14,7 +14,7 @@ gomock for Bazel
 ================
 
 This skylark code allows you to generate code with `mockgen` (from
-[`golang/mock`](https://github.com/golang/mock)) and use that code as a dependency in
+[`go.uber.org/mock`](https://github.com/uber-go/mock) and use that code as a dependency in
 your bazel projects. It handles all the `GOPATH` stuff for you.
 
 
@@ -22,7 +22,7 @@ Setup
 ---
 
 `bazel_gomock` requires a `rules_go` external to be set up in your `WORKSPACE`
-as well as a `go_repository` call for `com_github_golang_mock`.
+as well as a `go_repository` call for `org_uber_go_mock`.
 
 Then in your `WORKSPACE`, add
 
@@ -39,14 +39,14 @@ http_archive(
 )
 ```
 
-An example of a `com_github_golang_mock` you'd need:
+An example of a `org_uber_go_mock` you'd need:
 
 ```python
 go_repository(
-    name = "com_github_golang_mock",
-    importpath = "github.com/golang/mock",
-    sum = "h1:l75CXGRSwbaYNpl/Z2X1XIIAMSCquvXgpVZDhwEIJsc=",
-    version = "v1.4.4",
+    name = "org_uber_go_mock",
+    importpath = "go.uber.org/mock",
+    sum = "h1:NEVjcPIj/L96qilPi+2M5l9zUkQksRaqNKphz3pStHI=",
+    version = "v0.1.0",
 )
 ```
 
@@ -107,7 +107,7 @@ Also, `gazelle` will remove the generated source file from a `go_test` target's
 As a likely unused feature, you can pass in an alternative
 external for where to find the `mockgen` tool target using the `mockgen_tool`
 parameter. The only rule for the target is that must be a binary. The current
-default is `"@com_github_golang_mock//mockgen"`.
+default is `"@org_uber_go_mock//mockgen"`.
 
 If you try to use `gomock` on a `go_library` that is in the package `main` (and so
 probably being immediately used as an `embed` target for a `go_binary`), you'll
