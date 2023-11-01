@@ -92,6 +92,24 @@ go_test(
 )
 ```
 
+Alternatively, you can ommit the `out` attribute and pass the mock target into the
+`srcs` parameter:
+
+```python
+gomock(
+    name = "mock_sess",
+    interfaces = ["SessionsClient"],
+    library = "//proto/sessions/sessproto:go_default_library",
+    package = "sessmock",
+)
+
+go_library(
+    srcs = [":mock_sess"],
+    importpath = "mock/proto/sessions/sessmock",
+    visibility = ["//visibility:public"],
+)
+```
+
 If you need to generate mocks from a specific Go file instead of a
 import path (say, because the `go_library` you have is a `main` package and is
 therefore unreflectable by Go tools and specifically unimportable by `mockgen`),

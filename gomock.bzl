@@ -9,7 +9,7 @@ def _gomock_source_impl(ctx):
     gopath = "$(pwd)/" + ctx.bin_dir.path + "/" + ctx.attr.gopath_dep[GoPath].gopath
 
     # passed in source needs to be in gopath to not trigger module mode
-    args = ["-source", gopath + "/src/" + ctx.attr.library[GoLibrary].importmap + "/"+ ctx.file.source.basename]
+    args = ["-source", gopath + "/src/" + ctx.attr.library[GoLibrary].importmap + "/" + ctx.file.source.basename]
 
     args, needed_files = _handle_shared_args(ctx, args)
 
@@ -119,7 +119,7 @@ _gomock_source = rule(
     toolchains = ["@io_bazel_rules_go//go:toolchain"],
 )
 
-def gomock(name, library, out, **kwargs):
+def gomock(name, library, out = "mocks.go", **kwargs):
     mockgen_tool = _MOCKGEN_TOOL
     if kwargs.get("mockgen_tool", None):
         mockgen_tool = kwargs["mockgen_tool"]
